@@ -11,7 +11,7 @@
     [/^\/guide\/(post|meeting|project)\/([\w-]+)$/, 'guideDetail', { keys: ['type', 'id'] }],
     [/^\/submit$/, 'submit'],
     [/^\/track$/, 'track'],
-    [/^\/about$/, 'about'],
+    [/^\/(members|about)$/, 'members'],
     [/^\/inbox$/, 'inbox'],
     [/^\/admin\/?$/, 'dashboard', { member: true }],
     [/^\/admin\/proposals$/, 'proposals', { member: true }],

@@ -25,11 +25,11 @@
   // Order matters: this is the student-facing journey.
   const STAGES = [
     { key: 'submitted', label: 'Submitted',
-      explain: 'Your proposal has reached the Forum and has a reference number.' },
+      explain: 'Your proposal has reached Forum and has a reference number.' },
     { key: 'under_review', label: 'Under Preliminary Review',
       explain: 'A Forum member is reading your proposal and checking it against similar ideas.' },
     { key: 'approved', label: 'Approved for Consideration',
-      explain: 'The Forum agreed your idea is realistic and worth taking further.' },
+      explain: 'Forum agreed your idea is realistic and worth taking further.' },
     { key: 'sponsor', label: 'Assigned to a Representative Sponsor',
       explain: 'A Forum representative now champions your idea and will take it forward.' },
     { key: 'admin_review', label: 'Under Administration Review', sub: 'Ms. Anderson and Ms. Warren',
@@ -164,7 +164,7 @@
 
   function members() { return db.users.filter((u) => u.role === 'member'); }
 
-  const SIGNOFF = '\n\n— The Student Forum';
+  const SIGNOFF = '\n\n— Student Forum';
 
   /* ---------- Submission windows ---------- */
 
@@ -490,7 +490,7 @@
       };
       db.proposals.push(p);
       sendEmail(u.id, 'We received your proposal: ' + title + ' (' + p.ref + ')',
-        'Hi ' + u.firstName + ',\n\nThanks for sharing your idea with the Forum. Your proposal "' + title + '" was received on ' + fmtDateTime(now) + '.\n\n' +
+        'Hi ' + u.firstName + ',\n\nThanks for sharing your idea with Forum. Your proposal "' + title + '" was received on ' + fmtDateTime(now) + '.\n\n' +
         'Reference number: ' + p.ref + '\n\nA Forum member will review it soon. You can follow its progress any time on the Track Your Proposal page, and we will email you whenever its status changes.' + SIGNOFF,
         'student', 'submitted:' + p.id);
       // One heads-up per member per window, not one per proposal.
@@ -652,12 +652,12 @@
       if (status === 'admin_review') body += '\n\nMs. Anderson and Ms. Warren from the school administration are now reviewing it.';
       if (status === 'rejected') {
         subject = 'Decision on your proposal ' + p.ref;
-        body = 'Hi ' + owner.firstName + ',\n\nThe Forum has decided not to take your proposal "' + p.title + '" (' + p.ref + ') further at this time.';
+        body = 'Hi ' + owner.firstName + ',\n\nForum has decided not to take your proposal "' + p.title + '" (' + p.ref + ') further at this time.';
         if (p.shareReason) body += '\n\nReason: ' + p.rejectionReason;
         body += '\n\nThank you for contributing. You are welcome to submit a revised idea in a future submission window.';
       }
       if (status === 'sponsor') body += '\n\nYour sponsor is ' + memberLabel(p.sponsorId) + '.';
-      if (message) body += '\n\nMessage from the Forum: ' + message;
+      if (message) body += '\n\nMessage from Forum: ' + message;
       body += '\n\nSee the full progress on the Track Your Proposal page.' + SIGNOFF;
       sendEmail(owner.id, subject, body, 'student', 'status:' + p.id + ':' + status + ':' + p.history.length);
       save();
@@ -697,7 +697,7 @@
       audit('Posted student-visible update', p.ref + ' ' + p.title);
       const owner = db.users.find((x) => x.id === p.ownerId);
       sendEmail(owner.id, 'New update on your proposal ' + p.ref,
-        'Hi ' + owner.firstName + ',\n\nThe Forum posted an update on "' + p.title + '":\n\n' + text.trim() + '\n\nSee the full progress on the Track Your Proposal page.' + SIGNOFF,
+        'Hi ' + owner.firstName + ',\n\nForum posted an update on "' + p.title + '":\n\n' + text.trim() + '\n\nSee the full progress on the Track Your Proposal page.' + SIGNOFF,
         'student', 'update:' + p.id + ':' + at);
       save();
     },
@@ -1245,25 +1245,25 @@
 
     const posts = [
       { id: 'n-1', title: 'New Sustainability Project', category: 'announcements', state: 'ongoing', published: true, authorId: 'm-okafor',
-        summary: 'The Forum is launching the Greener Campus Initiative, starting with recycling bins in every hallway.',
-        body: 'Thanks to several student proposals, the Forum is starting a campus-wide sustainability project. The first step is labelled recycling bins next to every general waste bin, followed by a composting trial in the cafeteria.',
+        summary: 'Forum is launching the Greener Campus Initiative, starting with recycling bins in every hallway.',
+        body: 'Thanks to several student proposals, Forum is starting a campus-wide sustainability project. The first step is labelled recycling bins next to every general waste bin, followed by a composting trial in the cafeteria.',
         nextSteps: 'Bins arrive next month. Look out for the compost trial in January.', createdAt: now - 3 * DAY, publishedAt: now - 3 * DAY },
       { id: 'n-2', title: 'Submissions open every two weeks', category: 'announcements', state: 'ongoing', published: true, authorId: 'm-silva',
         summary: 'The proposal portal now opens for one day every two weeks. You can submit up to two proposals per month.',
-        body: 'To make sure every idea gets a proper review, the Forum collects proposals in short submission windows. Each window lasts one day and opens every two weeks. Upcoming dates are shown on the Submit a Proposal page as soon as they are announced.',
+        body: 'To make sure every idea gets a proper review, Forum collects proposals in short submission windows. Each window lasts one day and opens every two weeks. Upcoming dates are shown on the Submit a Proposal page as soon as they are announced.',
         nextSteps: 'Check the Submit a Proposal page for the next window.', createdAt: now - 16 * DAY, publishedAt: now - 16 * DAY },
       { id: 'n-3', title: 'Decision: Student art goes up in the main hallway', category: 'decisions', state: 'completed', published: true, authorId: 'm-lind',
-        summary: 'The Forum and school leadership approved rotating student art displays. The first wall is now up.',
-        body: 'Following a student proposal, the Forum voted to create rotating art displays in the main hallway. School leadership agreed and the first display went up this week.',
+        summary: 'Forum and school leadership approved rotating student art displays. The first wall is now up.',
+        body: 'Following a student proposal, Forum voted to create rotating art displays in the main hallway. School leadership agreed and the first display went up this week.',
         nextSteps: 'Winter display submissions open in December through the art department.', createdAt: now - 4 * DAY, publishedAt: now - 4 * DAY },
       { id: 'n-4', title: 'What students asked for this term', category: 'suggestions', state: 'ongoing', published: true, authorId: 'm-zhang',
         summary: 'Study space, sustainability and food options are the three most common themes in this term\'s proposals.',
-        body: 'Across this term\'s submission windows, students most often asked for more quiet places to study, easier recycling and better food choices. The Forum is grouping these ideas so they can be discussed together.',
+        body: 'Across this term\'s submission windows, students most often asked for more quiet places to study, easier recycling and better food choices. Forum is grouping these ideas so they can be discussed together.',
         nextSteps: 'Study space ideas will be discussed at the next meeting.', createdAt: now - 1 * DAY, publishedAt: now - 1 * DAY },
       { id: 'n-5', title: 'Decision: No change to the Monday start time', category: 'decisions', state: 'completed', published: true, authorId: 'm-silva',
         summary: 'After discussing a later Monday start with the principal, the timetable will stay the same this year.',
-        body: 'The Forum raised student requests for a later start on Mondays. The timetable and bus contracts are fixed for this school year, so no change is possible right now. The feedback has been passed to the principal for next year\'s planning.',
-        nextSteps: 'The Forum will raise this again when next year\'s timetable is planned.', createdAt: now - 20 * DAY, publishedAt: now - 20 * DAY },
+        body: 'Forum raised student requests for a later start on Mondays. The timetable and bus contracts are fixed for this school year, so no change is possible right now. The feedback has been passed to the principal for next year\'s planning.',
+        nextSteps: 'Forum will raise this again when next year\'s timetable is planned.', createdAt: now - 20 * DAY, publishedAt: now - 20 * DAY },
       { id: 'n-6', title: 'Winter formal planning (draft)', category: 'announcements', state: 'ongoing', published: false, authorId: 'm-zhang',
         summary: 'Draft announcement about the winter formal. Not ready to publish.',
         body: '', nextSteps: '', createdAt: now - 1 * DAY, publishedAt: null }
@@ -1276,7 +1276,7 @@
         notes: 'Discussed: recycling bins proposal SF from Ethan\nDecision: accept recycling bins, part of Greener Campus\nDecision: approve student art walls\nAction: Okafor will contact facilities about bins\nNext: compost trial plan at next meeting',
         confidential: 'Budget figures from facilities ($1,840 quote). Staff member concerns about cafeteria staffing — not for publication.',
         review: [{ at: now - 12 * DAY, by: 'm-lind', action: 'submitted', comment: '' }, { at: now - 11.5 * DAY, by: 'm-silva', action: 'approved', comment: 'Looks good.' }],
-        summary: S({ overview: 'The Forum accepted two student proposals and agreed the next steps for the Greener Campus Initiative.',
+        summary: S({ overview: 'Forum accepted two student proposals and agreed the next steps for the Greener Campus Initiative.',
           topics: ['Recycling across campus', 'Student art in the main hallway', 'Food waste in the cafeteria'],
           decisions: ['Accept the proposal to add recycling bins in every hallway', 'Approve rotating student art displays'],
           ongoing: ['How to run a composting trial in the cafeteria'],
@@ -1289,7 +1289,7 @@
         notes: 'Discussed later Monday start\nDiscussed mental health awareness week',
         confidential: 'Principal shared bus contract details in confidence.',
         review: [{ at: now - 26 * DAY, by: 'm-lind', action: 'submitted', comment: '' }, { at: now - 25.5 * DAY, by: 'm-okafor', action: 'approved', comment: '' }],
-        summary: S({ overview: 'The Forum discussed the school day schedule and planning for a Mental Health Awareness Week.',
+        summary: S({ overview: 'Forum discussed the school day schedule and planning for a Mental Health Awareness Week.',
           topics: ['A later start on Mondays', 'Mental Health Awareness Week'],
           decisions: ['No change to the Monday start time this year; feedback passed to the principal'],
           ongoing: ['Dates and format for Mental Health Awareness Week'],
@@ -1319,7 +1319,7 @@
     proposals.forEach((p) => {
       const owner = users.find((u) => u.id === p.ownerId);
       mail(p.ownerId, 'We received your proposal: ' + p.title + ' (' + p.ref + ')',
-        'Hi ' + owner.firstName + ',\n\nThanks for sharing your idea with the Forum. Your proposal "' + p.title + '" was received.\n\nReference number: ' + p.ref, 'student', p.submittedAt);
+        'Hi ' + owner.firstName + ',\n\nThanks for sharing your idea with Forum. Your proposal "' + p.title + '" was received.\n\nReference number: ' + p.ref, 'student', p.submittedAt);
       p.history.slice(1).forEach((h) => mail(p.ownerId, 'Your proposal is now ' + STATUS[h.status].label + ': ' + p.title,
         'Hi ' + owner.firstName + ',\n\nYour proposal "' + p.title + '" (' + p.ref + ') has moved to: ' + STATUS[h.status].label + '.' + (h.status === 'rejected' && p.shareReason ? '\n\nReason: ' + p.rejectionReason : ''), 'student', h.at));
       p.history.slice(1).forEach((h) => audit.push({ id: 'a-' + audit.length, at: h.at, by: h.by, action: 'Changed status to ' + STATUS[h.status].label, target: p.ref + ' ' + p.title, detail: '' }));

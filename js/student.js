@@ -157,21 +157,21 @@
           '<div class="home-side">' +
           '<section class="quick" aria-label="Quick access">' +
             '<a class="quick-card" href="#/guide">' + icon('book') + '<strong>Forum Updates</strong><span>Read the latest news and decisions.</span></a>' +
-            '<a class="quick-card" href="#/submit">' + icon('lightbulb') + '<strong>Submit an Idea</strong><span>Share a suggestion with the Forum.</span></a>' +
+            '<a class="quick-card" href="#/submit">' + icon('lightbulb') + '<strong>Submit an Idea</strong><span>Share a suggestion with Forum.</span></a>' +
             '<a class="quick-card" href="#/track">' + icon('chart') + '<strong>Track Your Proposal</strong><span>Follow the progress of your submissions.</span></a>' +
           '</section>' +
           '<section class="card pad window-card" aria-labelledby="win-h">' +
             '<h2 id="win-h" class="h-sm">' + icon('calendar') + (s.open ? 'Submissions are open now' : 'Submissions are closed') + '</h2>' +
             '<p>' + (s.open ? 'This window closes <strong>' + esc(API.fmtDateTime(s.window.closesAt)) + '</strong>. You can submit ' + s.remaining + ' more proposal' + (s.remaining === 1 ? '' : 's') + ' this month.'
               : s.next ? 'The next window opens <strong>' + esc(API.fmtDateTime(s.next.opensAt)) + '</strong>.' : 'The next window has not been announced yet.') + '</p>' +
-            '<ol class="mini-stages" aria-label="How a proposal moves through the Forum">' + API.STAGES.map((st) => '<li>' + esc(st.label) + '</li>').join('') + '</ol>' +
+            '<ol class="mini-stages" aria-label="How a proposal moves through Forum">' + API.STAGES.map((st) => '<li>' + esc(st.label) + '</li>').join('') + '</ol>' +
             (s.open && s.remaining ? '<a class="btn btn-primary" href="#/submit">Submit an idea ' + icon('arrowRight') + '</a>' : '<a class="btn btn-ghost" href="#/track">Track your proposals ' + icon('arrowRight') + '</a>') +
           '</section>' +
           '</div>' +
         '</div>' +
         '<section class="wrap" aria-labelledby="proj-h"><div class="section-head"><h2 id="proj-h">Current Forum Projects</h2><a class="more" href="#/guide?cat=projects">All projects ' + icon('arrowRight') + '</a></div>' +
           '<div class="project-grid">' + (projects.length ? projects.map(projectCard).join('') : empty('folder', 'No projects yet', '')) + '</div></section>' +
-        '<section class="wrap"><div class="forum-band"><img src="assets/bb-forum-logo.jpg" alt="" class="band-logo" width="64" height="64"><p>The Student Forum is here to listen, support your ideas, and help build a better school community.</p><a class="btn btn-ghost" href="#/about">About the Forum ' + icon('arrowRight') + '</a></div></section>' +
+        '<section class="wrap"><div class="forum-band"><img src="assets/bb-forum-logo.jpg" alt="" class="band-logo" width="64" height="64"><p>Student Forum is here to listen, support your ideas, and help build a better school community.</p><a class="btn btn-ghost" href="#/members">Meet Forum Members ' + icon('arrowRight') + '</a></div></section>' +
         '</main>'
     };
   };
@@ -206,7 +206,7 @@
     return {
       title: 'Forum Guide',
       html: '<main id="main" class="wrap page">' +
-        '<header class="page-head"><h1>' + icon('book', 'h-icon') + 'Forum Guide</h1><p class="lede">What the Forum discusses, decides and works on. Everything here has been approved for publication.</p></header>' +
+        '<header class="page-head"><h1>' + icon('book', 'h-icon') + 'Forum Guide</h1><p class="lede">What Forum discusses, decides and works on. Everything here has been approved for publication.</p></header>' +
         '<div class="guide-layout">' +
           '<aside class="guide-side" aria-label="Categories"><h2 class="side-h">Categories</h2><ul class="cat-list">' +
             '<li><button data-cat="" ' + (!state.cat ? 'aria-pressed="true"' : 'aria-pressed="false"') + '>' + icon('grid') + 'All updates<span>' + all.length + '</span></button></li>' +
@@ -377,7 +377,7 @@
           const me = API.me();
           root.querySelector('#submit-body').innerHTML =
             '<div class="confirm-box" tabindex="-1">' + icon('check', 'confirm-icon') +
-            '<h2>Proposal submitted</h2><p>Thanks, ' + esc(me.firstName) + '. Your idea is with the Forum.</p>' +
+            '<h2>Proposal submitted</h2><p>Thanks, ' + esc(me.firstName) + '. Your idea is with Forum.</p>' +
             '<div class="ticket"><div><span>Reference number</span><strong class="mono">' + esc(p.ref) + '</strong></div>' +
             '<div><span>Submitted</span><strong>' + esc(API.fmtDateTime(p.submittedAt)) + '</strong></div>' +
             '<div><span>Status</span>' + statusPill(p.status) + '</div></div>' +
@@ -409,7 +409,7 @@
           statusPill(p.status) + '</div>' +
         journey(p) +
         '<div class="whats-next">' + icon('info') + '<div><strong>' + (p.status === 'rejected' || p.status === 'accepted' || p.status === 'completed' ? 'Outcome' : 'What\'s next?') + '</strong><p>' + esc(stageExplain(p)) + '</p>' +
-          (p.rejectionReason ? '<p><strong>Reason from the Forum:</strong> ' + esc(p.rejectionReason) + '</p>' : '') +
+          (p.rejectionReason ? '<p><strong>Reason from Forum:</strong> ' + esc(p.rejectionReason) + '</p>' : '') +
           (!['accepted', 'completed', 'rejected'].includes(p.status) ? '<p class="meta">You will be notified by email when there is an update.</p>' : '') + '</div></div>' +
         '<dl class="track-facts">' +
           '<div><dt>Sponsor</dt><dd>' + (p.sponsor ? esc(p.sponsor) : '<span class="meta">Not assigned yet</span>') + '</dd></div>' +
@@ -418,7 +418,7 @@
         '<details class="track-more"' + (i === 0 ? '' : '') + '><summary>Your proposal and full history</summary>' +
           '<div class="track-more-body"><h3>Description</h3>' + paras(p.description) + (p.issue ? '<h3>The problem it solves</h3>' + paras(p.issue) : '') +
           '<h3>History</h3><ol class="timeline">' + p.timeline.slice().reverse().map((t) => '<li><span class="meta">' + API.fmtDateTime(t.at) + '</span><p>' + esc(API.STATUS[t.status].label) + '</p></li>').join('') + '</ol>' +
-          (p.updates.length ? '<h3>Updates from the Forum</h3><ol class="timeline">' + p.updates.slice().reverse().map((u) => '<li><span class="meta">' + fmt(u.at) + '</span><p>' + esc(u.text) + '</p></li>').join('') + '</ol>' : '') +
+          (p.updates.length ? '<h3>Updates from Forum</h3><ol class="timeline">' + p.updates.slice().reverse().map((u) => '<li><span class="meta">' + fmt(u.at) + '</span><p>' + esc(u.text) + '</p></li>').join('') + '</ol>' : '') +
           '</div></details>' +
         '</article>';
     };
@@ -437,31 +437,23 @@
     };
   };
 
-  /* ---------------- About ---------------- */
+  /* ---------------- Forum Members ---------------- */
 
-  PAGES.about = () => {
-    const members = API.publicMembers();
+  PAGES.members = () => {
+    const roster = (window.FORUM_CONFIG || {}).roster || { classes: [] };
+    const initials = (n) => n.split(' ').filter(Boolean).map((x) => x[0]).slice(0, 2).join('');
+    const person = (name, role, cls) => '<li class="person' + (cls ? ' ' + cls : '') + '"><span class="avatar" aria-hidden="true">' + esc(initials(name)) + '</span><div><strong>' + esc(name) + '</strong><span class="person-role">' + esc(role) + '</span></div></li>';
+    const sbp = roster.studentBodyPresident;
     return {
-      title: 'About the Forum',
+      title: 'Forum Members',
       html: '<main id="main" class="wrap page">' +
-        '<header class="page-head"><h1>' + icon('info', 'h-icon') + 'About the Forum</h1><p class="lede">The Student Forum is the elected voice of students. We meet regularly, take student ideas to school leadership and report back on what happens.</p></header>' +
-        '<div class="about-grid">' +
-          '<section class="card pad"><h2>What we do</h2><ul class="checks">' +
-            '<li>' + icon('check') + 'Collect and review student proposals every two weeks.</li>' +
-            '<li>' + icon('check') + 'Discuss ideas at Forum meetings and with school staff.</li>' +
-            '<li>' + icon('check') + 'Run projects that come out of student suggestions.</li>' +
-            '<li>' + icon('check') + 'Publish what we discuss and decide in the Forum Guide.</li></ul></section>' +
-          '<section class="card pad"><h2>Your privacy</h2><ul class="checks">' +
-            '<li>' + icon('lock') + 'Your proposals are visible only to you and Forum members.</li>' +
-            '<li>' + icon('lock') + 'Internal notes and confidential discussions are never published.</li>' +
-            '<li>' + icon('lock') + 'Meeting summaries are reviewed and approved by a Forum member before anyone sees them.</li>' +
-            '<li>' + icon('lock') + 'We only collect your name, email and grade.</li></ul></section>' +
-        '</div>' +
-        '<section><h2 class="section-title">How a proposal moves through the Forum</h2><ol class="stage-cards">' +
-          API.STAGES.map((s, i) => '<li><span class="stage-num">' + (i + 1) + '</span><strong>' + esc(s.label) + '</strong>' + (s.sub ? '<span class="meta">' + esc(s.sub) + '</span>' : '') + '<p>' + esc(s.explain) + '</p></li>').join('') + '</ol></section>' +
-        '<section><h2 class="section-title">Forum members</h2><ul class="member-grid">' +
-          members.map((m) => '<li class="card pad member"><span class="avatar" aria-hidden="true">' + esc(m.name.split(' ').map((x) => x[0]).join('')) + '</span><div><strong>' + esc(m.title + ' ' + m.name.split(' ').slice(-1)[0]) + '</strong><span class="meta">' + esc(m.name) + '</span><p>' + esc(m.focus) + '</p></div></li>').join('') +
-        '</ul></section></main>'
+        '<header class="page-head"><h1>' + icon('users', 'h-icon') + 'Forum Members</h1><p class="lede">The students elected to represent you. Talk to your class president or representatives about any idea, or submit it as a proposal.</p></header>' +
+        (sbp ? '<section class="sbp-card" aria-label="Student Body President"><span class="avatar avatar-lg" aria-hidden="true">' + esc(initials(sbp)) + '</span><div><p class="sbp-role">Student Body President</p><h2>' + esc(sbp) + '</h2></div></section>' : '') +
+        '<div class="class-grid">' + roster.classes.map((c) =>
+          '<section class="card class-card" aria-labelledby="cls-' + esc(c.name) + '"><h2 id="cls-' + esc(c.name) + '" class="class-name">' + esc(c.name) + ' Class</h2><ul class="people">' +
+            person(c.president, c.name + ' Class President', 'is-president') +
+            (c.representatives || []).map((r) => person(r, c.name + ' Representative')).join('') +
+          '</ul></section>').join('') + '</div></main>'
     };
   };
 
@@ -473,7 +465,7 @@
     return {
       title: 'Email notifications',
       html: '<main id="main" class="wrap page">' +
-        '<header class="page-head row-head"><div><h1>' + icon('mail', 'h-icon') + 'Email notifications</h1><p class="lede">Emails the Forum has sent to ' + esc(me.email) + '. In this demo, emails are delivered here instead of to a real mailbox.</p></div>' +
+        '<header class="page-head row-head"><div><h1>' + icon('mail', 'h-icon') + 'Email notifications</h1><p class="lede">Emails Forum has sent to ' + esc(me.email) + '. In this demo, emails are delivered here instead of to a real mailbox.</p></div>' +
         (mails.some((m) => !m.read) ? '<button class="btn btn-ghost" data-allread>Mark all as read</button>' : '') + '</header>' +
         (mails.length ? '<ul class="mail-list">' + mails.map((m) =>
           '<li class="mail' + (m.read ? '' : ' unread') + '"><details data-id="' + esc(m.id) + '"><summary>' +

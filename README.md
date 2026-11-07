@@ -1,6 +1,6 @@
 # Forum Portal: Student Forum Guide & Proposal Platform
 
-The central online platform for the Student Forum. Students read Forum news, meeting summaries and projects, submit proposals during submission windows, and track their progress. Forum members review and group proposals, manage submission windows, approve and publish meeting summaries, and run projects from their own dashboard.
+The central online platform for Student Forum. Students read Forum news, meeting summaries and projects, submit proposals during submission windows, and track their progress. Forum members review and group proposals, manage submission windows, approve and publish meeting summaries, and run projects from their own dashboard.
 
 ---
 
@@ -97,6 +97,7 @@ To start over, click **Reset sample data** in the footer of any page.
 | Two roles with separate access | Sign-in screen; *Forum Member* button in the top bar (members only) |
 | "Hey (name)" greeting | Home page, and the top of the member dashboard |
 | Homepage: welcome, latest updates, quick cards, projects | `#/` |
+| Forum Members: Student Body President and each class's president and representatives (edit the list in `js/config.js`) | `#/members` |
 | Forum Guide: 5 categories, search, filters, published items only | `#/guide` |
 | Proposal form, guidelines, 2-per-month limit, submission windows | `#/submit` |
 | Reference number, confirmation, confirmation email | Shown after submitting; bell icon |
@@ -132,7 +133,7 @@ Each email carries an event key, so the same event never emails anyone twice. To
 
 ```
 index.html            App entry point
-js/config.js          Settings: Google Client ID, school email domain, Forum member list
+js/config.js          Settings: Google Client ID, school email domain, Forum member list, Forum Members roster
 css/styles.css        All styles: colour tokens, layouts, responsive rules
 js/store.js           Data, rules, permissions, grouping, notifications, sample data
 js/ui.js              Shared interface: icons, top bar, progress tracker, dialogs, toasts
@@ -195,9 +196,9 @@ Notes:
 
 | # | Stage | Meaning |
 |---|---|---|
-| 1 | Submitted | The proposal has reached the Forum and has a reference number. |
+| 1 | Submitted | The proposal has reached Forum and has a reference number. |
 | 2 | Under Preliminary Review | A Forum member is reading it and checking it against similar ideas. |
-| 3 | Approved for Consideration | The Forum agreed it is realistic and worth taking further. |
+| 3 | Approved for Consideration | Forum agreed it is realistic and worth taking further. |
 | 4 | Assigned to a Representative Sponsor | A Forum representative champions it and takes it forward. |
 | 5 | Under Administration Review | Ms. Anderson and Ms. Warren from the school administration are reviewing it. |
 | 6 | Approved or Rejected | The final decision, with any reason shared with the student. |

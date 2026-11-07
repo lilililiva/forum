@@ -20,6 +20,17 @@ window.FORUM_CONFIG = {
     // 'kevin.zhang@yourschool.org': 'Representative'
   },
 
+  // The Forum Members page. Update this list when new members are elected.
+  roster: {
+    studentBodyPresident: 'Michelle Pham',
+    classes: [
+      { name: 'Freshman',  president: 'Gabriel Shen',     representatives: ['Atti Chen', 'Elia Alcazar-Aguilu'] },
+      { name: 'Sophomore', president: 'Pedro Silva',      representatives: ['Liam Foudy', 'Lucy Zhang'] },
+      { name: 'Junior',    president: 'Rihaan Vora',      representatives: ['Ved Bastodkar', 'Isabella Valdesolo'] },
+      { name: 'Senior',    president: 'Marc Meringolo',   representatives: ['Lula Alter', 'Benji Dillon'] }
+    ]
+  },
+
   // Show the "Explore with a demo account" section on the sign-in page.
   // Set to false once Google sign-in is working.
   showDemoAccounts: true

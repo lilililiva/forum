@@ -172,7 +172,7 @@
           '<section class="card pad"><h2 class="h-sm">Change status</h2>' +
             '<form data-form="status" class="stack">' +
               '<label class="field-sm"><span>New status</span><select name="status" required>' + options(changeTo.map((s) => ({ value: s, label: API.STATUS[s].label })), '', 'Choose a status') + '</select></label>' +
-              '<div data-reject hidden class="stack"><label class="field-sm"><span>Reason for rejection</span><textarea name="reason" rows="3" placeholder="Why is the Forum not taking this further?"></textarea></label>' +
+              '<div data-reject hidden class="stack"><label class="field-sm"><span>Reason for rejection</span><textarea name="reason" rows="3" placeholder="Why is Forum not taking this further?"></textarea></label>' +
                 '<label class="check"><input type="checkbox" name="share" checked> Share this reason with the student</label></div>' +
               '<label class="field-sm"><span>Message to the student (optional)</span><textarea name="message" rows="2" placeholder="Included in the status email"></textarea></label>' +
               '<button class="btn btn-primary btn-block" type="submit">Update status</button>' +
@@ -517,7 +517,7 @@
     };
     return {
       title: 'Projects', admin: true,
-      html: head('folder', 'Ongoing projects', 'Create and update the projects the Forum is working on. Students only see projects marked visible, and only public updates.', '<button class="btn btn-primary" data-new>' + icon('plus') + 'New project</button>') +
+      html: head('folder', 'Ongoing projects', 'Create and update the projects Forum is working on. Students only see projects marked visible, and only public updates.', '<button class="btn btn-primary" data-new>' + icon('plus') + 'New project</button>') +
         '<div class="admin-projects">' + projects.map((p) => '<article class="card pad admin-project">' +
           '<div class="project-top">' + projectPill(p.status) + (p.published ? tonePill('Visible to students', 'green') : tonePill('Members only', 'neutral')) + '</div>' +
           '<h3>' + esc(p.title) + '</h3><p>' + esc(p.description) + '</p>' + progressBar(p.progress, p.title) +

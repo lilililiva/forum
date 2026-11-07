@@ -230,7 +230,7 @@
     { href: '#/guide', label: 'Forum Guide', match: /^#\/guide/ },
     { href: '#/submit', label: 'Submit a Proposal', match: /^#\/submit/ },
     { href: '#/track', label: 'Track Your Proposal', match: /^#\/track/ },
-    { href: '#/about', label: 'About the Forum', match: /^#\/about/ }
+    { href: '#/members', label: 'Forum Members', match: /^#\/(members|about)/ }
   ];
 
   const ADMIN_NAV = [
@@ -274,7 +274,7 @@
   function footer() {
     return '<footer class="footer"><div class="wrap footer-inner">' +
       '<img src="assets/bb-forum-logo.jpg" alt="BB Forum" class="footer-logo" width="56" height="56">' +
-      '<p>The Student Forum listens to students, supports their ideas and helps build a better school community.</p>' +
+      '<p>Student Forum listens to students, supports their ideas and helps build a better school community.</p>' +
       '<p class="footer-meta">Demo build · data is stored in this browser · <button class="linklike" data-action="reset">Reset sample data</button></p>' +
       '</div></footer>';
   }
