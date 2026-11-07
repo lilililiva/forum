@@ -100,38 +100,51 @@
 
   /* ---------- The proposal journey (signature element) ---------- */
 
-  function journey(p) {
-    const st = API.STATUS[p.status];
-    const rejected = p.status === 'rejected';
-    const current = rejected ? 5 : st.stage;
-    const reached = rejected ? (p.reachedStage || 0) : current;
-    const done = p.status === 'accepted' || p.status === 'completed' || rejected;
-    let html = '<ol class="journey' + (rejected ? ' is-rejected' : '') + (done ? ' is-done' : '') + '" aria-label="Proposal progress">';
-    API.STAGES.forEach((stage, i) => {
-      let state, sr;
-      if (i === 5) {
-        if (done) { state = rejected ? 'rejected' : 'complete'; sr = rejected ? 'Rejected' : (p.status === 'completed' ? 'Accepted and completed' : 'Accepted'); }
-        else { state = 'future'; sr = 'Not reached yet'; }
-      } else if (rejected && i > reached) { state = 'skipped'; sr = 'Not reached'; }
-      else if (i < current || (done && i <= reached)) { state = 'complete'; sr = 'Completed'; }
+  const DECISION = 5;     // "Approved or Rejected"
+  const IMPLEMENTED = 6;  // "Implemented"
+
+  // Works out how each of the seven stages should look for one proposal.
+  function stageStates(p) {
+    const status = p.status;
+    const current = API.STATUS[status].stage;
+    const reached = p.reachedStage || 0;
+    return API.STAGES.map((stage, i) => {
+      let state, sr, label = stage.label;
+      if (status === 'rejected') {
+        if (i === DECISION) { state = 'rejected'; label = 'Rejected'; sr = 'Rejected'; }
+        else if (i < DECISION && i <= reached) { state = 'complete'; sr = 'Completed'; }
+        else { state = 'skipped'; sr = 'Not reached'; }
+      } else if (status === 'completed') {
+        state = 'complete'; sr = 'Completed';
+        if (i === DECISION) { state = 'approved'; label = 'Approved'; sr = 'Approved'; }
+        if (i === IMPLEMENTED) { state = 'implemented'; sr = 'Implemented'; }
+      } else if (status === 'accepted') {
+        if (i < DECISION) { state = 'complete'; sr = 'Completed'; }
+        else if (i === DECISION) { state = 'approved'; label = 'Approved'; sr = 'Approved'; }
+        else { state = 'current'; sr = 'Current stage: being put into action'; }
+      } else if (i < current) { state = 'complete'; sr = 'Completed'; }
       else if (i === current) { state = 'current'; sr = 'Current stage'; }
       else { state = 'future'; sr = 'Not reached yet'; }
-      let label = stage.label;
-      if (i === 5 && done) label = rejected ? 'Rejected' : (p.status === 'completed' ? 'Accepted · Completed' : 'Accepted');
-      const mark = state === 'complete' ? icon('check') : state === 'rejected' ? icon('x') : state === 'current' ? '<span class="dot"></span>' : '';
-      html += '<li class="step step-' + state + '"' + (state === 'current' ? ' aria-current="step"' : '') + '>' +
-        '<span class="step-mark">' + mark + '</span>' +
-        '<span class="step-label">' + esc(label) + '<span class="sr-only"> — ' + sr + '</span></span></li>';
+      return { state, sr, label, sub: stage.sub || '' };
     });
-    return html + '</ol>';
+  }
+
+  function journey(p) {
+    const cls = p.status === 'rejected' ? ' is-rejected' : '';
+    return '<ol class="journey' + cls + '" aria-label="Proposal progress">' + stageStates(p).map((s) => {
+      const mark = ['complete', 'approved', 'implemented'].includes(s.state) ? icon('check') : s.state === 'rejected' ? icon('x') : s.state === 'current' ? '<span class="dot"></span>' : '';
+      return '<li class="step step-' + s.state + '"' + (s.state === 'current' ? ' aria-current="step"' : '') + '>' +
+        '<span class="step-mark">' + mark + '</span>' +
+        '<span class="step-label">' + esc(s.label) + (s.sub ? '<small>' + esc(s.sub) + '</small>' : '') +
+        '<span class="sr-only"> — ' + s.sr + '</span></span></li>';
+    }).join('') + '</ol>';
   }
 
   function stageExplain(p) {
-    const st = API.STATUS[p.status];
-    if (p.status === 'rejected') return 'The Forum decided not to take this proposal further.' + (p.rejectionReason ? '' : ' You can submit a revised idea in a future window.');
-    if (p.status === 'accepted') return 'The Forum accepted your proposal. Watch for updates as it is put into action.';
-    if (p.status === 'completed') return 'Your idea has been accepted and put into action. Thank you!';
-    return API.STAGES[st.stage].explain;
+    if (p.status === 'rejected') return 'The decision was not to take this proposal further.' + (p.rejectionReason ? '' : ' You can submit a revised idea in a future window.');
+    if (p.status === 'accepted') return 'Your proposal has been approved. Watch for updates as it is put into action.';
+    if (p.status === 'completed') return 'Your idea has been approved and put into action. Thank you!';
+    return API.STAGES[API.STATUS[p.status].stage].explain;
   }
 
   /* ---------- Toasts ---------- */
@@ -238,9 +251,9 @@
     const inAdmin = /^#\/admin/.test(hash);
     return '<header class="topbar">' +
       '<div class="topbar-inner">' +
-      '<a class="brand" href="#/" aria-label="Student Forum home">' +
+      '<a class="brand" href="#/" aria-label="Forum Portal home">' +
         '<img class="brand-seal" src="assets/school-seal.jpg" alt="" width="44" height="44">' +
-        '<span class="brand-text">Student Forum<small>The Forum Guide</small></span></a>' +
+        '<span class="brand-text">Forum Portal<small>The Forum Guide</small></span></a>' +
       '<button class="icon-btn nav-toggle" aria-expanded="false" aria-controls="mainnav" aria-label="Menu">' + icon('menu') + '</button>' +
       '<nav id="mainnav" class="mainnav" aria-label="Main">' + links +
         '<div class="nav-tools">' +

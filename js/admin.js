@@ -47,8 +47,8 @@
           stat('clock', st.awaiting, 'Awaiting review', '#/admin/proposals?status=awaiting', 'amber') +
           stat('check', st.approved, 'Approved for consideration', '#/admin/proposals?status=approved', 'blue') +
           stat('users', st.sponsor, 'Assigned to sponsors', '#/admin/proposals?status=sponsor', 'blue') +
-          stat('message', st.discussion, 'Under discussion', '#/admin/proposals?status=discussion', 'violet') +
-          stat('check', st.accepted, 'Accepted', '#/admin/proposals?status=accepted', 'green') +
+          stat('message', st.admin_review, 'Under administration review', '#/admin/proposals?status=admin_review', 'violet') +
+          stat('check', st.accepted, 'Approved', '#/admin/proposals?status=accepted', 'green') +
           stat('x', st.rejected, 'Rejected', '#/admin/proposals?status=rejected', 'red') +
         '</div>' +
         '<div class="dash-grid">' +
@@ -92,7 +92,7 @@
   PAGES.proposals = (params, query) => {
     const all = API.allProposals();
     const f = { q: query.q || '', grade: query.grade || '', cat: query.cat || '', status: query.status || '', from: query.from || '', to: query.to || '' };
-    const statusOpts = [{ value: 'awaiting', label: 'Awaiting review (Submitted + Under Review)' }].concat(Object.keys(API.STATUS).map((k) => ({ value: k, label: API.STATUS[k].label })));
+    const statusOpts = [{ value: 'awaiting', label: 'Awaiting review (Submitted + Preliminary Review)' }].concat(Object.keys(API.STATUS).map((k) => ({ value: k, label: API.STATUS[k].label })));
 
     function filtered() {
       const q = f.q.trim().toLowerCase();
@@ -145,7 +145,7 @@
     if (!p) return { title: 'Not found', admin: true, html: empty('search', 'Proposal not found', '') };
     const membersList = API.membersList();
     const groups = API.groups();
-    const changeTo = ['under_review', 'approved', 'sponsor', 'discussion', 'accepted', 'completed', 'rejected'].filter((s) => s !== p.status);
+    const changeTo = ['under_review', 'approved', 'sponsor', 'admin_review', 'accepted', 'completed', 'rejected'].filter((s) => s !== p.status);
 
     const history = p.history.slice().reverse().map((h) => '<li><span class="meta">' + fmtDT(h.at) + '</span><p>' + statusPill(h.status) + ' <span class="by">by ' + esc(h.by === p.ownerId ? p.ownerName + ' (student)' : API.memberLabel(h.by)) + '</span></p></li>').join('');
     const notes = p.internalNotes.length ? p.internalNotes.slice().reverse().map((n) => '<li><span class="meta">' + fmtDT(n.at) + ' · ' + esc(API.memberLabel(n.by)) + '</span><p>' + esc(n.text) + '</p></li>').join('') : '<li class="meta">No internal notes yet.</li>';

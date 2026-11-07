@@ -72,7 +72,7 @@
     } else {
       app.innerHTML = UI.header(hash) + page.html + UI.footer();
     }
-    document.title = page.title + ' · Student Forum';
+    document.title = page.title + ' · Forum Portal';
     if (page.mount) page.mount(app);
     bindShell();
 
@@ -95,6 +95,8 @@
     });
     app.querySelectorAll('[data-action=signout]').forEach((b) => b.addEventListener('click', () => {
       API.signOut();
+      // Stop Google from signing the same account straight back in.
+      if (window.google && window.google.accounts && window.google.accounts.id) window.google.accounts.id.disableAutoSelect();
       UI.toast('Signed out');
       location.hash = '#/login';
     }));

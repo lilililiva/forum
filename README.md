@@ -1,4 +1,4 @@
-# Student Forum: Digital Forum Guide & Proposal Platform
+# Forum Portal: Student Forum Guide & Proposal Platform
 
 The central online platform for the Student Forum. Students read Forum news, meeting summaries and projects, submit proposals during submission windows, and track their progress. Forum members review and group proposals, manage submission windows, approve and publish meeting summaries, and run projects from their own dashboard.
 
@@ -10,7 +10,7 @@ No installation is needed.
 
 1. Open the `Forum Guide Website` folder.
 2. Double-click **`index.html`**. It opens in your web browser (Chrome, Safari, Edge or Firefox).
-3. Choose an account on the sign-in screen.
+3. On the sign-in page, click **Sign in with Google** (once it is connected, see section 7), or open **Explore with a demo account** at the bottom and pick a name.
 
 The fonts load from Google Fonts, so connect to the internet for the intended look. Without a connection the platform still works, using standard fonts.
 
@@ -22,7 +22,7 @@ python3 -m http.server 8000
 
 ### Demo accounts
 
-This demo has no passwords. Click a name to use the platform as that person. A real deployment would use the school's single sign-on (see section 6).
+Until Google sign-in is connected, use the demo accounts. They are under **Explore with a demo account** at the bottom of the sign-in page. Click a name to use the platform as that person. You can hide this section with one setting (section 7).
 
 | Account | Role | Greeting |
 |---|---|---|
@@ -56,9 +56,9 @@ To start over, click **Reset sample data** in the footer of any page.
 1. **Home:** check the "Hey Liam" greeting, the latest updates, the quick-access cards, the submission-window status and the current projects.
 2. **Forum Guide:** filter by category (left), search for `library` or `recycling`, and filter by Ongoing or Completed. Open a meeting summary to see decisions, ongoing discussions and projects underway, each marked differently.
 3. **Track Your Proposal:** Liam has three proposals:
-   - *More Study Spaces*: Under Review
-   - *Phone Charging Stations*: Assigned to Sponsor, with an update from the sponsor
-   - *Later Start on Mondays*: Rejected, with the reason shown
+   - *More Study Spaces*: Under Preliminary Review
+   - *Phone Charging Stations*: Assigned to a Representative Sponsor, with an update from the sponsor
+   - *Later Start on Mondays*: Rejected, with the reason shown (it was rejected after Administration Review)
 4. **Submit a Proposal:** press Submit with the form empty to see the field errors. Then submit a real idea. You get a reference number like `SF-2026-0017`, a confirmation email (bell icon), and the proposal appears on the Track page.
 5. Return to Submit. Liam has now used both proposals for this month, so the form is replaced by a limit message.
 6. Type `#/admin` at the end of the address. Students are sent back to Home with "That area is for Forum members only."
@@ -100,7 +100,7 @@ To start over, click **Reset sample data** in the footer of any page.
 | Forum Guide: 5 categories, search, filters, published items only | `#/guide` |
 | Proposal form, guidelines, 2-per-month limit, submission windows | `#/submit` |
 | Reference number, confirmation, confirmation email | Shown after submitting; bell icon |
-| Private tracking with a 6-stage progress tracker | `#/track` |
+| Private tracking with a 7-stage progress tracker (section 8) | `#/track` |
 | Member dashboard: statistics, sections, quick actions | `#/admin` |
 | Review, filters, notes, statuses, sponsors, rejection reasons | `#/admin/proposals` |
 | Automatic grouping suggestions, manual groups, combined summaries | `#/admin/groups` |
@@ -132,6 +132,7 @@ Each email carries an event key, so the same event never emails anyone twice. To
 
 ```
 index.html            App entry point
+js/config.js          Settings: Google Client ID, school email domain, Forum member list
 css/styles.css        All styles: colour tokens, layouts, responsive rules
 js/store.js           Data, rules, permissions, grouping, notifications, sample data
 js/ui.js              Shared interface: icons, top bar, progress tracker, dialogs, toasts
@@ -158,9 +159,48 @@ This is a complete, working **front-end application**. Every workflow runs in th
 | Demo build | Live platform |
 |---|---|
 | Data in browser storage | A database on a school-approved server |
-| Click-a-name sign-in | School single sign-on (Google Workspace / Microsoft 365), with roles assigned by staff |
+| Google sign-in checked in the browser (section 7), plus demo accounts | Google sign-in also verified on a server, with roles assigned by staff |
 | Emails delivered to the in-app inbox | A real email service (the messages and no-duplicate rules are already written) |
 | Permission checks in the browser | The same checks enforced on the server, so they can't be bypassed |
 | Window closing checked while a page is open | A scheduled server job |
 
 The pages would not need to change, because they only talk to the `API` object.
+
+---
+
+## 7. Connecting Google sign-in
+
+The sign-in page uses **Sign in with Google**. To switch it on you need a Google Client ID, which is free and takes about 10 minutes. Google sign-in only works when the portal is opened from a web address (for example GitHub Pages), not by double-clicking `index.html`.
+
+1. Go to **console.cloud.google.com** and sign in. A school account is best, if your school allows it.
+2. Create a project (top bar → project picker → **New project**), named for example `Forum Portal`.
+3. Open **APIs & Services → OAuth consent screen**, choose **Internal** if you're using a school Google Workspace account (otherwise **External**), and fill in the app name and your email.
+4. Open **APIs & Services → Credentials → Create credentials → OAuth client ID**:
+   - **Application type:** Web application
+   - **Authorized JavaScript origins:** the portal's web address, for example `https://lilililiva.github.io`. Add `http://localhost:8000` too, if you test locally.
+5. Copy the **Client ID** (it ends in `.apps.googleusercontent.com`).
+6. Open `js/config.js` and fill in:
+   - `googleClientId`: paste the Client ID
+   - `allowedDomains`: your school's email domain, for example `['yourschool.org']`, so only school accounts can sign in
+   - `forumMembers`: each Forum member's school email and title, for example `'kevin.zhang@yourschool.org': 'Representative'`. Everyone else who signs in is a student.
+   - `showDemoAccounts`: set to `false` once Google sign-in works, to hide the demo accounts
+7. Commit and push. The **Sign in with Google** button now opens Google's sign-in.
+
+Notes:
+- Greetings use the name on the Google account: "Hey Sam" for students, and the title from `forumMembers` for members ("Hey Representative Zhang").
+- Roles come only from `forumMembers`. Nobody can choose or change their own role.
+- In this browser-only build, the site checks the Google sign-in in the browser. A live launch should also check it on a server (see section 6).
+
+## 8. Proposal stages
+
+| # | Stage | Meaning |
+|---|---|---|
+| 1 | Submitted | The proposal has reached the Forum and has a reference number. |
+| 2 | Under Preliminary Review | A Forum member is reading it and checking it against similar ideas. |
+| 3 | Approved for Consideration | The Forum agreed it is realistic and worth taking further. |
+| 4 | Assigned to a Representative Sponsor | A Forum representative champions it and takes it forward. |
+| 5 | Under Administration Review | Ms. Anderson and Ms. Warren from the school administration are reviewing it. |
+| 6 | Approved or Rejected | The final decision, with any reason shared with the student. |
+| 7 | Implemented | The idea has been put into action at school. |
+
+Members can reject a proposal at any stage. The tracker then shows the stages it reached, a red ✕ at stage 6, and greys out the rest.

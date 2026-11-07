@@ -416,7 +416,7 @@ input[readonly], textarea[readonly] { background: var(--surface-2) !important; c
 .step { flex: 1 1 0; position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; min-width: 0; }
 /* Connector into each step from the previous one. */
 .step + .step::before { content: ''; position: absolute; top: 15px; right: 50%; width: 100%; height: 3px; background: var(--line); z-index: 0; }
-.step-complete::before, .step-current::before, .step-rejected::before { background: var(--blue) !important; }
+.step-complete::before, .step-current::before, .step-rejected::before, .step-approved::before, .step-implemented::before { background: var(--blue) !important; }
 .step-skipped::before { background: repeating-linear-gradient(90deg, var(--line-strong) 0 6px, transparent 6px 11px) !important; }
 .is-rejected .step-rejected::before { background: repeating-linear-gradient(90deg, var(--line-strong) 0 6px, transparent 6px 11px) !important; }
 .step-mark { position: relative; z-index: 1; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--surface); border: 2.5px solid var(--line-strong); }
@@ -430,8 +430,9 @@ input[readonly], textarea[readonly] { background: var(--surface-2) !important; c
 .step-complete .step-label { color: var(--ink); }
 .step-current .step-label { color: var(--navy); font-weight: 700; }
 .step-rejected .step-label { color: var(--red); font-weight: 700; }
-.is-done:not(.is-rejected) .step:last-child .step-mark { background: var(--green); border-color: var(--green); }
-.is-done:not(.is-rejected) .step:last-child .step-label { color: var(--green); font-weight: 700; }
+.step-approved .step-mark, .step-implemented .step-mark { background: var(--green); border-color: var(--green); color: #fff; }
+.step-approved .step-label, .step-implemented .step-label { color: var(--green); font-weight: 700; }
+.step-label small { display: block; font-size: .76rem; font-weight: 500; color: var(--muted); margin-top: 2px; }
 @media (prefers-reduced-motion: no-preference) {
   .step-current .step-mark { animation: ring 2.4s ease-out infinite; }
   @keyframes ring { 0% { box-shadow: 0 0 0 0 rgba(29, 86, 201, .35); } 70%, 100% { box-shadow: 0 0 0 9px rgba(29, 86, 201, 0); } }
@@ -465,7 +466,7 @@ input[readonly], textarea[readonly] { background: var(--surface-2) !important; c
 .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
 .about-grid h2 { font-size: 1.2rem; margin-bottom: 14px; }
 .about-grid .checks .icon { color: var(--blue); }
-.stage-cards { list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.stage-cards { list-style: none; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
 .stage-cards li { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 18px; }
 .stage-cards strong { display: block; margin: 8px 0 4px; }
 .stage-cards p { color: var(--ink-2); font-size: .93rem; }
@@ -500,11 +501,28 @@ input[readonly], textarea[readonly] { background: var(--surface-2) !important; c
 .login-art { position: relative; background: var(--navy); }
 .login-art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .login-art-fade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(14, 42, 82, .2), rgba(255, 255, 255, 0) 60%, #fff 100%); }
-.login-panel { padding: 48px clamp(20px, 5vw, 56px); }
+.login-panel { padding: 48px clamp(20px, 5vw, 56px); display: flex; flex-direction: column; justify-content: center; }
+.login-card { max-width: 420px; }
+.login-eyebrow { font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--blue-ink); margin-bottom: 4px; }
+.login h1 { font-size: clamp(2.4rem, 5vw, 3.2rem); }
+.login .lede { margin-bottom: 28px; }
+.google-slot { min-height: 44px; display: flex; }
+.google-btn { display: inline-flex; align-items: center; justify-content: center; gap: 12px; width: 320px; max-width: 100%; min-height: 44px; padding: 10px 20px; border: 1px solid #747775; border-radius: 999px; background: #fff; color: #1f1f1f; font: 500 15px/1.2 'Roboto', var(--font-body); cursor: pointer; transition: background .15s, box-shadow .15s; }
+.google-btn:hover { background: #f8faff; box-shadow: 0 1px 3px rgba(60, 64, 67, .2); }
+.g-logo { width: 20px; height: 20px; flex: none; }
+.login-error { color: var(--red); font-weight: 600; font-size: .92rem; margin: 12px 0 0; max-width: 380px; }
+.login-error:empty { display: none; }
+.login-note { display: flex; gap: 8px; align-items: flex-start; margin-top: 18px !important; font-size: .88rem; color: var(--muted); max-width: 380px; }
+.login-note .icon { width: 16px; height: 16px; margin-top: 2px; }
+.demo-accounts { margin-top: 44px; padding-top: 18px; border-top: 1px solid var(--line); }
+.demo-accounts summary { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; color: var(--ink-2); font-size: .93rem; list-style: none; }
+.demo-accounts summary::-webkit-details-marker { display: none; }
+.demo-accounts summary .icon { width: 18px; height: 18px; color: var(--muted); }
+.demo-accounts[open] summary { margin-bottom: 6px; }
 .login-brand { display: flex; align-items: center; gap: 18px; margin-bottom: 26px; }
 .login-seal { border-radius: 50%; background: #000; }
 .login-forum { mix-blend-mode: multiply; }
-.login h1 { font-size: 2rem; margin-bottom: 10px; color: var(--navy); }
+.login h1 { margin-bottom: 10px; color: var(--navy); }
 .login-h { font-size: .8rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 26px 0 10px; }
 .accounts { list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .account { width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: var(--surface); border: 1.5px solid var(--line); border-radius: 12px; cursor: pointer; text-align: left; transition: border-color .15s, background .15s; }
@@ -518,7 +536,7 @@ input[readonly], textarea[readonly] { background: var(--surface-2) !important; c
   .login { grid-template-columns: 1fr; }
   .login-art { height: 180px; }
   .login-art-fade { background: linear-gradient(0deg, #fff, rgba(255, 255, 255, 0) 60%); }
-  .login-panel { padding-top: 8px; }
+  .login-panel { padding-top: 8px; justify-content: flex-start; }
 }
 @media (max-width: 480px) { .accounts { grid-template-columns: 1fr; } }
 

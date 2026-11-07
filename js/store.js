@@ -8,7 +8,7 @@
 (function () {
   'use strict';
 
-  const DB_KEY = 'studentForum.db.v1';
+  const DB_KEY = 'studentForum.db.v2';
   const SESSION_KEY = 'studentForum.session.v1';
   const HOUR = 3600e3;
   const DAY = 24 * HOUR;
@@ -26,27 +26,29 @@
   const STAGES = [
     { key: 'submitted', label: 'Submitted',
       explain: 'Your proposal has reached the Forum and has a reference number.' },
-    { key: 'under_review', label: 'Under Review',
+    { key: 'under_review', label: 'Under Preliminary Review',
       explain: 'A Forum member is reading your proposal and checking it against similar ideas.' },
     { key: 'approved', label: 'Approved for Consideration',
       explain: 'The Forum agreed your idea is realistic and worth taking further.' },
-    { key: 'sponsor', label: 'Assigned to Sponsor',
-      explain: 'A Forum member now champions your idea and will bring it to meetings.' },
-    { key: 'discussion', label: 'Under Discussion',
-      explain: 'The Forum is discussing your idea, and may raise it with school staff.' },
-    { key: 'decision', label: 'Accepted or Rejected',
-      explain: 'The Forum has made a final decision. You will see the outcome and any reason given.' }
+    { key: 'sponsor', label: 'Assigned to a Representative Sponsor',
+      explain: 'A Forum representative now champions your idea and will take it forward.' },
+    { key: 'admin_review', label: 'Under Administration Review', sub: 'Ms. Anderson and Ms. Warren',
+      explain: 'Ms. Anderson and Ms. Warren from the school administration are reviewing your proposal.' },
+    { key: 'decision', label: 'Approved or Rejected',
+      explain: 'A final decision has been made. You will see the outcome and any reason given.' },
+    { key: 'implemented', label: 'Implemented',
+      explain: 'Your idea has been put into action at school.' }
   ];
 
   const STATUS = {
-    submitted:    { label: 'Submitted',                  tone: 'neutral', stage: 0 },
-    under_review: { label: 'Under Review',               tone: 'amber',   stage: 1 },
-    approved:     { label: 'Approved for Consideration', tone: 'blue',    stage: 2 },
-    sponsor:      { label: 'Assigned to Sponsor',        tone: 'blue',    stage: 3 },
-    discussion:   { label: 'Under Discussion',           tone: 'violet',  stage: 4 },
-    accepted:     { label: 'Accepted',                   tone: 'green',   stage: 5 },
-    completed:    { label: 'Completed',                  tone: 'green',   stage: 5 },
-    rejected:     { label: 'Rejected',                   tone: 'red',     stage: 5 }
+    submitted:    { label: 'Submitted',                            tone: 'neutral', stage: 0 },
+    under_review: { label: 'Under Preliminary Review',             tone: 'amber',   stage: 1 },
+    approved:     { label: 'Approved for Consideration',           tone: 'blue',    stage: 2 },
+    sponsor:      { label: 'Assigned to a Representative Sponsor', tone: 'blue',    stage: 3 },
+    admin_review: { label: 'Under Administration Review',          tone: 'violet',  stage: 4 },
+    accepted:     { label: 'Approved',                             tone: 'green',   stage: 5 },
+    rejected:     { label: 'Rejected',                             tone: 'red',     stage: 5 },
+    completed:    { label: 'Implemented',                          tone: 'green',   stage: 6 }
   };
 
   const PROJECT_STATUS = ['Proposed', 'Under Consideration', 'In Progress',
@@ -421,6 +423,34 @@
       try { localStorage.setItem(SESSION_KEY, u.id); } catch (e) { /* ignore */ }
     },
     signOut() { sessionUserId = null; try { localStorage.removeItem(SESSION_KEY); } catch (e) { /* ignore */ } },
+
+    // Called after Google confirms who someone is. The role comes only from the
+    // Forum member list in js/config.js, never from anything the person chooses.
+    signInWithGoogle(profile) {
+      const cfg = window.FORUM_CONFIG || {};
+      const email = String(profile.email || '').trim().toLowerCase();
+      if (!email || !profile.emailVerified) throw new Error('Google could not confirm this email address.');
+      const domains = (cfg.allowedDomains || []).map((d) => d.toLowerCase().replace(/^@/, ''));
+      if (domains.length && !domains.includes(email.split('@')[1])) {
+        throw new Error('Please sign in with your school Google account (' + domains.map((d) => '@' + d).join(' or ') + ').');
+      }
+      const members = {};
+      Object.keys(cfg.forumMembers || {}).forEach((k) => { members[k.toLowerCase()] = cfg.forumMembers[k]; });
+      const nameParts = String(profile.name || email.split('@')[0]).trim().split(/\s+/);
+      let u = db.users.find((x) => x.email.toLowerCase() === email);
+      if (!u) {
+        u = { id: 'g-' + email.replace(/[^a-z0-9]+/g, '-'), email, grade: null, source: 'google' };
+        db.users.push(u);
+      }
+      u.firstName = profile.givenName || nameParts[0] || 'Student';
+      u.lastName = profile.familyName || (nameParts.length > 1 ? nameParts[nameParts.length - 1] : '');
+      if (members[email]) { u.role = 'member'; u.title = members[email]; } else { u.role = 'student'; delete u.title; }
+      save();
+      API.signIn(u.id);
+      return clone(u);
+    },
+    googleConfigured() { const c = window.FORUM_CONFIG || {}; return !!(c.googleClientId || '').trim(); },
+    showDemoAccounts() { const c = window.FORUM_CONFIG || {}; return c.showDemoAccounts !== false; },
     me() { const u = currentUser(); return u ? clone(u) : null; },
     isMember() { return isMember(); },
     greetingName() { return greetingName(currentUser()); },
@@ -559,7 +589,7 @@
         awaiting: c(['submitted', 'under_review']),
         approved: c(['approved']),
         sponsor: c(['sponsor']),
-        discussion: c(['discussion']),
+        admin_review: c(['admin_review']),
         accepted: c(['accepted', 'completed']),
         rejected: c(['rejected'])
       };
@@ -617,7 +647,9 @@
       const owner = db.users.find((x) => x.id === p.ownerId);
       let subject = 'Your proposal is now ' + STATUS[status].label + ': ' + p.title;
       let body = 'Hi ' + owner.firstName + ',\n\nYour proposal "' + p.title + '" (' + p.ref + ') has moved to: ' + STATUS[status].label + '.';
-      if (status === 'accepted') { subject = 'Good news: your proposal was accepted (' + p.ref + ')'; body = 'Hi ' + owner.firstName + ',\n\nThe Forum has accepted your proposal "' + p.title + '" (' + p.ref + ').'; }
+      if (status === 'accepted') { subject = 'Good news: your proposal was approved (' + p.ref + ')'; body = 'Hi ' + owner.firstName + ',\n\nYour proposal "' + p.title + '" (' + p.ref + ') has been approved. The next step is putting it into action.'; }
+      if (status === 'completed') { subject = 'Your idea has been implemented (' + p.ref + ')'; body = 'Hi ' + owner.firstName + ',\n\nYour proposal "' + p.title + '" (' + p.ref + ') has been put into action at school. Thank you for making a difference!'; }
+      if (status === 'admin_review') body += '\n\nMs. Anderson and Ms. Warren from the school administration are now reviewing it.';
       if (status === 'rejected') {
         subject = 'Decision on your proposal ' + p.ref;
         body = 'Hi ' + owner.firstName + ',\n\nThe Forum has decided not to take your proposal "' + p.title + '" (' + p.ref + ') further at this time.';
@@ -1105,7 +1137,7 @@
         title: 'Later Start on Mondays',
         desc: 'Start school at 9:30 on Mondays so students can catch up on sleep after the weekend and start the week more focused.',
         reason: 'The school timetable is set by the board for next year, and a later start would affect bus contracts. We have passed the feedback on to the principal.',
-        path: [['under_review', 'm-silva'], ['approved', 'm-silva'], ['sponsor', 'm-silva'], ['discussion', 'm-okafor'], ['rejected', 'm-silva']],
+        path: [['under_review', 'm-silva'], ['approved', 'm-silva'], ['sponsor', 'm-silva'], ['admin_review', 'm-okafor'], ['rejected', 'm-silva']],
         notes: [['m-okafor', 'Principal confirmed bus contracts are fixed through June. Confidential: board budget discussion ongoing.']] }),
 
       // Same window as Liam's study spaces idea: these should be suggested as a group.
@@ -1126,8 +1158,8 @@
       P({ id: 'p-08', owner: 'u-ethan', win: 'w-2', at: inWin('w-2', 3), cat: 'Sustainability', sponsor: 'm-okafor',
         title: 'Increase Recycling Bins',
         desc: 'There are only general waste bins in most hallways, so plastic bottles and paper end up in the trash. Adding labelled recycling bins next to every waste bin would make recycling easy.',
-        path: [['under_review', 'm-silva'], ['approved', 'm-silva'], ['sponsor', 'm-silva'], ['discussion', 'm-okafor'], ['accepted', 'm-silva']],
-        updates: [['m-okafor', 'Accepted! This is now part of the Greener Campus Initiative. The first 20 bins arrive next month.']] }),
+        path: [['under_review', 'm-silva'], ['approved', 'm-silva'], ['sponsor', 'm-silva'], ['admin_review', 'm-okafor'], ['accepted', 'm-silva']],
+        updates: [['m-okafor', 'Approved! This is now part of the Greener Campus Initiative. The first 20 bins arrive next month.']] }),
       P({ id: 'p-09', owner: 'u-sofia', win: 'w-3', at: inWin('w-3', 4), cat: 'Sustainability', sponsor: 'm-okafor',
         title: 'Composting in the Cafeteria',
         desc: 'A lot of food waste from lunch goes straight in the bin. A compost bin in the cafeteria would cut waste, and the compost could be used in the school garden.',
@@ -1140,7 +1172,7 @@
       P({ id: 'p-11', owner: 'u-maya', win: 'w-2', at: inWin('w-2', 5), cat: 'Wellbeing', sponsor: 'm-okafor',
         title: 'Mental Health Awareness Week',
         desc: 'Run a week of workshops, quiet spaces and talks about stress and mental health before exam season, with the counselling team.',
-        path: [['under_review', 'm-silva'], ['approved', 'm-silva'], ['sponsor', 'm-silva'], ['discussion', 'm-okafor']],
+        path: [['under_review', 'm-silva'], ['approved', 'm-silva'], ['sponsor', 'm-silva'], ['admin_review', 'm-okafor']],
         updates: [['m-okafor', 'The counselling team is on board. We are now waiting for the school to confirm dates in February.']] }),
       P({ id: 'p-12', owner: 'u-noah', win: 'w-3', at: inWin('w-3', 6), cat: 'Food & Dining',
         title: 'Healthier Snack Options',
@@ -1149,7 +1181,7 @@
       P({ id: 'p-13', owner: 'u-zara', win: 'w-1', at: inWin('w-1', 3), cat: 'Events & Activities', sponsor: 'm-lind',
         title: 'Student Art in the Hallways',
         desc: 'Display student artwork on the empty walls of the main hallway, changing every term, so the school feels more like ours.',
-        path: [['under_review', 'm-silva'], ['approved', 'm-silva'], ['sponsor', 'm-silva'], ['discussion', 'm-lind'], ['accepted', 'm-silva'], ['completed', 'm-lind']],
+        path: [['under_review', 'm-silva'], ['approved', 'm-silva'], ['sponsor', 'm-silva'], ['admin_review', 'm-lind'], ['accepted', 'm-silva'], ['completed', 'm-lind']],
         updates: [['m-lind', 'The first gallery wall went up this week. Thank you for the idea!']] }),
       P({ id: 'p-14', owner: 'u-ethan', win: 'w-3', at: inWin('w-3', 7), cat: 'Clubs & Societies',
         title: 'Club Fair Twice a Year',

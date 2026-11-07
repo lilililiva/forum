@@ -10,32 +10,99 @@
 
   /* ---------------- Sign in (demo) ---------------- */
 
+  // Google's multicolour "G", used on the button as Google's sign-in branding asks.
+  const GOOGLE_G = '<svg class="g-logo" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>';
+
+  function goAfterSignIn() {
+    const back = sessionStorage.getItem('sf.after') || '#/';
+    sessionStorage.removeItem('sf.after');
+    location.hash = back;
+    if (location.hash === back) window.dispatchEvent(new HashChangeEvent('hashchange'));
+  }
+
+  // Read the profile out of Google's sign-in token and check it was issued for this site.
+  function readGoogleToken(token, clientId) {
+    const part = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+    const json = decodeURIComponent(atob(part).split('').map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+    const t = JSON.parse(json);
+    if (t.aud !== clientId) throw new Error('This sign-in was not issued for the Forum Portal.');
+    if (!/^(https:\/\/)?accounts\.google\.com$/.test(t.iss)) throw new Error('This sign-in did not come from Google.');
+    if (t.exp * 1000 < Date.now()) throw new Error('This sign-in has expired. Please try again.');
+    return { email: t.email, emailVerified: t.email_verified === true || t.email_verified === 'true', name: t.name, givenName: t.given_name, familyName: t.family_name };
+  }
+
+  function loadGoogleScript() {
+    return new Promise((resolve, reject) => {
+      if (window.google && window.google.accounts && window.google.accounts.id) return resolve();
+      const s = document.createElement('script');
+      s.src = 'https://accounts.google.com/gsi/client';
+      s.async = true;
+      s.onload = () => resolve();
+      s.onerror = () => reject(new Error('Could not reach Google. Check your internet connection.'));
+      document.head.appendChild(s);
+    });
+  }
+
   PAGES.login = () => {
-    const accounts = API.demoAccounts();
+    const cfg = window.FORUM_CONFIG || {};
+    const domains = (cfg.allowedDomains || []).map((d) => '@' + d.replace(/^@/, ''));
+    const accounts = API.demoAccounts().filter((a) => !a.id.startsWith('g-'));
     const card = (a) => '<li><button class="account" data-user="' + esc(a.id) + '">' +
       '<span class="avatar" aria-hidden="true">' + esc(a.name.split(' ').map((x) => x[0]).join('')) + '</span>' +
       '<span class="account-text"><strong>' + esc(a.name) + '</strong><small>' + esc(a.role === 'member' ? a.title + ' · Forum member' : a.grade + ' · Student') + '</small></span>' +
       icon('arrowRight') + '</button></li>';
+    const demo = API.showDemoAccounts() ? '<details class="demo-accounts"><summary>' + icon('users') + 'Explore with a demo account</summary>' +
+      '<p class="meta">Demo accounts use sample data and need no sign-in.</p>' +
+      '<h2 class="login-h">Students</h2><ul class="accounts">' + accounts.filter((a) => a.role === 'student').map(card).join('') + '</ul>' +
+      '<h2 class="login-h">Forum members</h2><ul class="accounts">' + accounts.filter((a) => a.role === 'member').map(card).join('') + '</ul></details>' : '';
     return {
       title: 'Sign in',
       bare: true,
       html: '<main id="main" class="login">' +
         '<section class="login-art" aria-hidden="true"><img src="assets/campus.jpg" alt=""><div class="login-art-fade"></div></section>' +
-        '<section class="login-panel">' +
+        '<section class="login-panel"><div class="login-card">' +
           '<div class="login-brand"><img src="assets/school-seal.jpg" alt="" class="login-seal" width="64" height="64"><img src="assets/bb-forum-logo.jpg" alt="BB Forum" class="login-forum" width="72" height="72"></div>' +
-          '<h1>Sign in to the Student Forum</h1>' +
-          '<p class="lede">This demo has no passwords. Choose an account to see the platform as that person. A live version would use the school\'s single sign-on.</p>' +
-          '<h2 class="login-h">Students</h2><ul class="accounts">' + accounts.filter((a) => a.role === 'student').map(card).join('') + '</ul>' +
-          '<h2 class="login-h">Forum members</h2><ul class="accounts">' + accounts.filter((a) => a.role === 'member').map(card).join('') + '</ul>' +
-        '</section></main>',
+          '<p class="login-eyebrow">The Forum Guide</p>' +
+          '<h1>Forum Portal</h1>' +
+          '<p class="lede">Your voice, your Forum. Sign in to share ideas, follow Forum decisions and track your proposals.</p>' +
+          '<div class="google-slot" id="google-slot">' +
+            '<button type="button" class="google-btn" id="google-fallback">' + GOOGLE_G + '<span>Sign in with Google</span></button>' +
+          '</div>' +
+          '<p class="login-error" role="alert" id="login-error"></p>' +
+          '<p class="login-note">' + icon('lock') + '<span>Use your school Google account' + (domains.length ? ' (' + esc(domains.join(' or ')) + ')' : '') + '. The Forum Portal only sees your name and school email.</span></p>' +
+        '</div>' + demo + '</section></main>',
       mount(root) {
-        root.querySelectorAll('[data-user]').forEach((b) => b.addEventListener('click', () => {
-          API.signIn(b.dataset.user);
-          const back = sessionStorage.getItem('sf.after') || '#/';
-          sessionStorage.removeItem('sf.after');
-          location.hash = back;
-          if (location.hash === back) window.dispatchEvent(new HashChangeEvent('hashchange'));
-        }));
+        const error = root.querySelector('#login-error');
+        const showError = (msg) => { error.textContent = msg; };
+        root.querySelectorAll('[data-user]').forEach((b) => b.addEventListener('click', () => { API.signIn(b.dataset.user); goAfterSignIn(); }));
+
+        const fallback = root.querySelector('#google-fallback');
+        const clientId = (cfg.googleClientId || '').trim();
+        if (!clientId) {
+          fallback.addEventListener('click', () => showError('Google sign-in isn\'t connected yet. A Forum administrator needs to add the Google Client ID in js/config.js.' + (API.showDemoAccounts() ? ' You can explore with a demo account below.' : '')));
+          return;
+        }
+        if (location.protocol === 'file:') {
+          fallback.addEventListener('click', () => showError('Google sign-in only works when the Forum Portal is opened from its web address, not from a file on this computer.'));
+          return;
+        }
+        fallback.addEventListener('click', () => showError('Google sign-in is still loading. Try again in a moment.'));
+        loadGoogleScript().then(() => {
+          window.google.accounts.id.initialize({
+            client_id: clientId,
+            hd: domains.length === 1 ? domains[0].slice(1) : undefined,
+            callback: (resp) => {
+              try {
+                const profile = readGoogleToken(resp.credential, clientId);
+                API.signInWithGoogle(profile);
+                goAfterSignIn();
+              } catch (e) { showError(e.message); }
+            }
+          });
+          const slot = root.querySelector('#google-slot');
+          slot.innerHTML = '';
+          window.google.accounts.id.renderButton(slot, { theme: 'outline', size: 'large', text: 'signin_with', shape: 'pill', width: 320, logo_alignment: 'left' });
+        }).catch((e) => showError(e.message));
       }
     };
   };
@@ -357,7 +424,7 @@
     };
 
     const stageGuide = '<details class="stage-guide"><summary>' + icon('info') + 'What each stage means</summary><ol>' +
-      API.STAGES.map((s) => '<li><strong>' + esc(s.label) + '</strong><span>' + esc(s.explain) + '</span></li>').join('') + '</ol></details>';
+      API.STAGES.map((s) => '<li><strong>' + esc(s.label) + (s.sub ? ' (' + esc(s.sub) + ')' : '') + '</strong><span>' + esc(s.explain) + '</span></li>').join('') + '</ol></details>';
 
     return {
       title: 'Track Your Proposal',
@@ -391,7 +458,7 @@
             '<li>' + icon('lock') + 'We only collect your name, email and grade.</li></ul></section>' +
         '</div>' +
         '<section><h2 class="section-title">How a proposal moves through the Forum</h2><ol class="stage-cards">' +
-          API.STAGES.map((s, i) => '<li><span class="stage-num">' + (i + 1) + '</span><strong>' + esc(s.label) + '</strong><p>' + esc(s.explain) + '</p></li>').join('') + '</ol></section>' +
+          API.STAGES.map((s, i) => '<li><span class="stage-num">' + (i + 1) + '</span><strong>' + esc(s.label) + '</strong>' + (s.sub ? '<span class="meta">' + esc(s.sub) + '</span>' : '') + '<p>' + esc(s.explain) + '</p></li>').join('') + '</ol></section>' +
         '<section><h2 class="section-title">Forum members</h2><ul class="member-grid">' +
           members.map((m) => '<li class="card pad member"><span class="avatar" aria-hidden="true">' + esc(m.name.split(' ').map((x) => x[0]).join('')) + '</span><div><strong>' + esc(m.title + ' ' + m.name.split(' ').slice(-1)[0]) + '</strong><span class="meta">' + esc(m.name) + '</span><p>' + esc(m.focus) + '</p></div></li>').join('') +
         '</ul></section></main>'
